@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
 
@@ -38,24 +38,46 @@ export default function Navbar() {
                         <span className="font-bold text-lg tracking-tight">NBA / TICKETS</span>
                     </Link>
 
-                    <div className="hidden md:flex items-center gap-8">
-                        <Link href="/matches" className="text-sm text-white/70 hover:text-white transition-colors">Matches</Link>
-                        <Link href="/matches" className="text-sm text-white/70 hover:text-white transition-colors">Teams</Link>
-                        {user ? (
-                            <div className="flex items-center gap-3">
-                                {user.role === 'admin' ? (
-                                    <Link href="/admin" className="text-sm px-4 py-2 bg-nba-red rounded-lg font-semibold hover:bg-red-700 transition-colors">Admin Panel</Link>
-                                ) : (
+                    {user ? (
+                        <div className="hidden md:flex items-center gap-8">
+                            {user.role === 'admin' ? (
+                                <>
+                                    <Link href="/admin/dashboard" className="text-sm text-white/70 hover:text-white transition-colors">Dashboard</Link>
+                                    <Link href="/admin/matches" className="text-sm text-white/70 hover:text-white transition-colors">Manage Match</Link>
+                                    <Link href="/admin/bookings" className="text-sm text-white/70 hover:text-white transition-colors">Booking Data</Link>
+                                    <Link href="/admin/dashboard" className="text-sm px-4 py-2 bg-nba-red rounded-lg font-semibold hover:bg-red-700 transition-colors">Admin Panel</Link>
+                                    <button
+                                        onClick={() => router.post('/logout')}
+                                        className="text-sm text-white/50 hover:text-white transition-colors"
+                                    >
+                                        Logout
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link href="/matches" className="text-sm text-white/70 hover:text-white transition-colors">Matches</Link>
+                                    <Link href="/matches" className="text-sm text-white/70 hover:text-white transition-colors">Teams</Link>
                                     <Link href="/dashboard" className="text-sm px-4 py-2 bg-nba-red rounded-lg font-semibold hover:bg-red-700 transition-colors">Dashboard</Link>
-                                )}
-                            </div>
-                        ) : (
+                                    <Link href="/riwayat" className="text-sm text-white/70 hover:text-white transition-colors">My Booking</Link>
+                                    <button
+                                        onClick={() => router.post('/logout')}
+                                        className="text-sm text-white/50 hover:text-white transition-colors"
+                                    >
+                                        Logout
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="hidden md:flex items-center gap-8">
+                            <Link href="/matches" className="text-sm text-white/70 hover:text-white transition-colors">Matches</Link>
+                            <Link href="/matches" className="text-sm text-white/70 hover:text-white transition-colors">Teams</Link>
                             <div className="flex items-center gap-3">
                                 <Link href="/login" className="text-sm text-white/70 hover:text-white transition-colors">Log in</Link>
                                 <Link href="/register" className="text-sm px-4 py-2 bg-nba-red rounded-lg font-semibold hover:bg-red-700 transition-colors">Sign Up</Link>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 text-white">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -72,16 +94,28 @@ export default function Navbar() {
             {mobileOpen && (
                 <div className="md:hidden bg-black/95 backdrop-blur-xl border-b border-white/5">
                     <div className="px-4 py-4 space-y-3">
-                        <Link href="/matches" className="block text-sm text-white/70 hover:text-white py-2">Matches</Link>
-                        <Link href="/matches" className="block text-sm text-white/70 hover:text-white py-2">Teams</Link>
                         {user ? (
                             user.role === 'admin' ? (
-                                <Link href="/admin" className="block text-sm px-4 py-2 bg-nba-red rounded-lg font-semibold text-center">Admin Panel</Link>
+                                <>
+                                    <Link href="/admin/dashboard" className="block text-sm text-white/70 hover:text-white py-2">Dashboard</Link>
+                                    <Link href="/admin/matches" className="block text-sm text-white/70 hover:text-white py-2">Manage Match</Link>
+                                    <Link href="/admin/bookings" className="block text-sm text-white/70 hover:text-white py-2">Booking Data</Link>
+                                    <Link href="/admin/dashboard" className="block text-sm px-4 py-2 bg-nba-red rounded-lg font-semibold text-center">Admin Panel</Link>
+                                    <button onClick={() => router.post('/logout')} className="block w-full text-sm px-4 py-2 border border-white/20 rounded-lg text-center text-white/70 hover:text-white">Logout</button>
+                                </>
                             ) : (
-                                <Link href="/dashboard" className="block text-sm px-4 py-2 bg-nba-red rounded-lg font-semibold text-center">Dashboard</Link>
+                                <>
+                                    <Link href="/matches" className="block text-sm text-white/70 hover:text-white py-2">Matches</Link>
+                                    <Link href="/matches" className="block text-sm text-white/70 hover:text-white py-2">Teams</Link>
+                                    <Link href="/dashboard" className="block text-sm px-4 py-2 bg-nba-red rounded-lg font-semibold text-center">Dashboard</Link>
+                                    <Link href="/riwayat" className="block text-sm text-white/70 hover:text-white py-2">My Booking</Link>
+                                    <button onClick={() => router.post('/logout')} className="block w-full text-sm px-4 py-2 border border-white/20 rounded-lg text-center text-white/70 hover:text-white">Logout</button>
+                                </>
                             )
                         ) : (
                             <>
+                                <Link href="/matches" className="block text-sm text-white/70 hover:text-white py-2">Matches</Link>
+                                <Link href="/matches" className="block text-sm text-white/70 hover:text-white py-2">Teams</Link>
                                 <Link href="/login" className="block text-sm px-4 py-2 border border-white/20 rounded-lg text-center">Log in</Link>
                                 <Link href="/register" className="block text-sm px-4 py-2 bg-nba-red rounded-lg font-semibold text-center">Sign Up</Link>
                             </>

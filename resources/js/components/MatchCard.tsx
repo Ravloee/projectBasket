@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import TeamLogo from '@/components/TeamLogo';
 import type { Game } from '@/types';
 
 interface MatchCardProps {
@@ -18,16 +19,12 @@ export default function MatchCard({ game, compact }: MatchCardProps) {
                 </div>
                 <div className="flex items-center justify-between gap-4 mb-4">
                     <div className="flex flex-col items-center gap-2">
-                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-lg font-bold">
-                            {game.tim_home.charAt(0)}
-                        </div>
+                        <TeamLogo team={game.tim_home} size={48} />
                         <span className="text-sm font-semibold text-center">{game.tim_home}</span>
                     </div>
                     <span className="text-2xl font-black italic text-white/20">VS</span>
                     <div className="flex flex-col items-center gap-2">
-                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-lg font-bold">
-                            {game.tim_away.charAt(0)}
-                        </div>
+                        <TeamLogo team={game.tim_away} size={48} />
                         <span className="text-sm font-semibold text-center">{game.tim_away}</span>
                     </div>
                 </div>

@@ -15,7 +15,8 @@ class RoleMiddleware
         }
 
         if (auth()->user()->role !== $role) {
-            return redirect('/dashboard');
+            $redirect = auth()->user()->role === 'admin' ? '/admin/dashboard' : '/dashboard';
+            return redirect($redirect);
         }
 
         return $next($request);

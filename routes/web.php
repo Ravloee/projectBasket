@@ -14,7 +14,7 @@ Route::get('/', function () {
     }
 
     return auth()->user()->role === 'admin'
-        ? redirect('/admin')
+        ? redirect('/admin/dashboard')
         : redirect('/dashboard');
 });
 
@@ -24,7 +24,7 @@ Route::get('/dashboard', function () {
     }
 
     if (auth()->user()->role === 'admin') {
-        return redirect('/admin');
+        return redirect('/admin/dashboard');
     }
 
     $bookings = Booking::where('user_id', auth()->id())
@@ -45,7 +45,7 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'role:user'])->group(function () {
 
     Route::get('/matches', function () {
-        $games = Game::latest()->get();
+        $games = Game::latest()->paginate(6);
         return Inertia::render('Matches', ['games' => $games]);
     })->name('matches');
 
@@ -67,6 +67,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
             'jumlah' => 'required|integer|min:1',
             'pembayaran' => 'required|string',
             'game_id' => 'required|exists:matches,id',
+            'kursi' => 'nullable|json',
         ]);
 
         Booking::create([
@@ -76,6 +77,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
             'user_id'    => auth()->id(),
             'status'     => 'pending',
             'game_id'    => $request->game_id,
+            'kursi'      => $request->kursi,
         ]);
 
         return redirect('/riwayat')->with('success', 'Booking berhasil dibuat!');
@@ -118,15 +120,22 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     });
 });
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
-    Route::put('/admin/status/{id}', function ($id) {
-        $booking = Booking::findOrFail($id);
-        $booking->update(['status' => 'success']);
-        return redirect('/admin')->with('success', 'Status berhasil diupdate!');
+    Route::get('/dashboard', function () {
+        $bookings = Booking::with('game')->latest()->get();
+        $matches = Game::latest()->get();
+
+        return Inertia::render('Admin/Dashboard', [
+            'bookings'   => $bookings,
+            'total'      => Booking::count(),
+            'totalTiket' => Booking::sum('jumlah'),
+            'totalUsers' => \App\Models\User::count(),
+            'games'      => $matches,
+        ]);
     });
 
-    Route::get('/admin', function (Request $request) {
+    Route::get('/bookings', function (Request $request) {
         $search = $request->search;
 
         $bookings = Booking::when($search, function ($q, $search) {
@@ -136,26 +145,74 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
             ->orderBy('id', 'desc')
             ->get();
 
-        return Inertia::render('Admin/Dashboard', [
-            'bookings'   => $bookings,
-            'total'      => Booking::count(),
-            'totalTiket' => Booking::sum('jumlah'),
+        return Inertia::render('Admin/BookingData', [
+            'bookings' => $bookings,
         ]);
     });
 
-    Route::delete('/admin/delete/{id}', function ($id) {
-        Booking::findOrFail($id)->delete();
-        return redirect('/admin')->with('success', 'Deleted!');
+    Route::put('/bookings/{id}/approve', function ($id) {
+        $booking = Booking::findOrFail($id);
+        $booking->update(['status' => 'success']);
+        return redirect('/admin/bookings')->with('success', 'Booking approved!');
     });
 
-    Route::get('/admin/edit/{id}', function ($id) {
+    Route::put('/bookings/{id}/cancel', function ($id) {
+        $booking = Booking::findOrFail($id);
+        $booking->update(['status' => 'cancelled']);
+        return redirect('/admin/bookings')->with('success', 'Booking cancelled!');
+    });
+
+    Route::delete('/bookings/{id}', function ($id) {
+        Booking::findOrFail($id)->delete();
+        return redirect('/admin/bookings')->with('success', 'Booking deleted!');
+    });
+
+    Route::get('/bookings/{id}/edit', function ($id) {
         $booking = Booking::findOrFail($id);
         return Inertia::render('Admin/BookingEdit', ['booking' => $booking]);
     });
 
-    Route::put('/admin/update/{id}', function (Request $request, $id) {
+    Route::put('/bookings/{id}', function (Request $request, $id) {
         Booking::findOrFail($id)->update($request->only('nama', 'jumlah', 'pembayaran'));
-        return redirect('/admin')->with('success', 'Updated!');
+        return redirect('/admin/bookings')->with('success', 'Booking updated!');
+    });
+
+    Route::get('/matches', function () {
+        $matches = Game::latest()->get();
+        return Inertia::render('Admin/ManageMatch', ['games' => $matches]);
+    });
+
+    Route::post('/matches', function (Request $request) {
+        $request->validate([
+            'tim_home' => 'required|string|max:255',
+            'tim_away' => 'required|string|max:255',
+            'tanggal'  => 'required|date',
+            'lokasi'   => 'required|string|max:255',
+            'harga'    => 'required|numeric|min:0',
+        ]);
+
+        Game::create($request->only('tim_home', 'tim_away', 'tanggal', 'lokasi', 'harga'));
+
+        return redirect('/admin/matches')->with('success', 'Match created!');
+    });
+
+    Route::put('/matches/{id}', function (Request $request, $id) {
+        $request->validate([
+            'tim_home' => 'required|string|max:255',
+            'tim_away' => 'required|string|max:255',
+            'tanggal'  => 'required|date',
+            'lokasi'   => 'required|string|max:255',
+            'harga'    => 'required|numeric|min:0',
+        ]);
+
+        Game::findOrFail($id)->update($request->only('tim_home', 'tim_away', 'tanggal', 'lokasi', 'harga'));
+
+        return redirect('/admin/matches')->with('success', 'Match updated!');
+    });
+
+    Route::delete('/matches/{id}', function ($id) {
+        Game::findOrFail($id)->delete();
+        return redirect('/admin/matches')->with('success', 'Match deleted!');
     });
 });
 

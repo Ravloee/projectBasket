@@ -1,10 +1,24 @@
+import { Link } from '@inertiajs/react';
 import MatchCard from '@/components/MatchCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import type { Game } from '@/types';
 
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
 interface Props {
-    games: Game[];
+    games: {
+        data: Game[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        links: PaginationLink[];
+    };
 }
 
 export default function Matches({ games }: Props) {
@@ -39,12 +53,45 @@ export default function Matches({ games }: Props) {
 
             <section className="py-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {games.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {games.map((game) => (
-                                <MatchCard key={game.id} game={game} />
-                            ))}
-                        </div>
+                    {games?.data?.length > 0 ? (
+                        <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {games.data.map((game) => (
+                                    <MatchCard key={game.id} game={game} />
+                                ))}
+                            </div>
+
+                            <div className="flex items-center justify-center gap-2 mt-10">
+                                {games?.links?.map((link, i) => {
+                                    if (link.url === null) {
+                                        return (
+                                            <span
+                                                key={i}
+                                                className="px-3 py-2 rounded-lg text-sm border border-white/5 text-white/20 cursor-not-allowed"
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        );
+                                    }
+
+                                    return (
+                                        <Link
+                                            key={i}
+                                            href={link.url}
+                                            className={`px-3 py-2 rounded-lg text-sm border transition-all ${
+                                                link.active
+                                                    ? 'bg-nba-red border-nba-red text-white font-semibold'
+                                                    : 'border-white/10 text-white/50 hover:bg-white/5 hover:text-white'
+                                            }`}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    );
+                                })}
+                            </div>
+
+                            <p className="text-center text-xs text-white/30 mt-4">
+                                Page {games.current_page} of {games.last_page} ({games.total} matches)
+                            </p>
+                        </>
                     ) : (
                         <div className="text-center py-20">
                             <p className="text-4xl font-black italic text-white/10 mb-4">NO MATCHES FOUND</p>

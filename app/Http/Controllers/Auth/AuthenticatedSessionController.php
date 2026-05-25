@@ -25,7 +25,7 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::user();
 
         if ($user && $user->role === 'admin') {
-            return redirect()->intended('/admin');
+            return redirect()->intended('/admin/dashboard');
         }
 
         return redirect()->intended('/dashboard');
@@ -38,6 +38,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect('/');
     }
 }

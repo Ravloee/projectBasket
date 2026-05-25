@@ -1,127 +1,137 @@
-import { useState } from 'react';
-import { router } from '@inertiajs/react';
-import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/Button';
-import type { Booking } from '@/types';
+import AdminLayout from '@/components/AdminLayout';
+import type { Booking, Game } from '@/types';
 
 interface Props {
     bookings: Booking[];
     total: number;
     totalTiket: number;
+    totalUsers: number;
+    games: Game[];
 }
 
-export default function AdminDashboard({ bookings, total, totalTiket }: Props) {
-    const [search, setSearch] = useState('');
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.get('/admin', { search }, { preserveState: true });
-    };
-
-    const handleApprove = (id: number) => {
-        router.put(`/admin/status/${id}`);
-    };
-
-    const handleDelete = (id: number) => {
-        if (confirm('Delete this booking?')) {
-            router.delete(`/admin/delete/${id}`);
-        }
-    };
-
-    const activeMatches = bookings.filter(b => b.status === 'success').length;
+export default function AdminDashboard({ bookings, total, totalTiket, totalUsers, games }: Props) {
+    const activeMatches = games.length;
+    const pendingBookings = bookings.filter(b => b.status === 'pending').length;
+    const successBookings = bookings.filter(b => b.status === 'success').length;
+    const cancelledBookings = bookings.filter(b => b.status === 'cancelled').length;
     const totalRevenue = bookings.reduce((sum, b) => sum + (b.jumlah * (b.game?.harga ?? 0)), 0);
+    const recentBookings = bookings.slice(0, 5);
+
+    const statCards = [
+        { label: 'Total Matches', value: activeMatches, color: 'text-blue-400' },
+        { label: 'Total Bookings', value: total, color: 'text-white' },
+        { label: 'Total Users', value: totalUsers, color: 'text-purple-400' },
+        { label: 'Total Revenue', value: `$${totalRevenue.toLocaleString()}`, color: 'text-nba-red' },
+    ];
 
     return (
-        <DashboardLayout role="admin" title="Admin Control Center">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <div className="bg-card-bg border border-white/5 rounded-xl p-5">
-                    <p className="text-xs text-white/50 uppercase tracking-wider mb-1">Total Revenue</p>
-                    <p className="text-3xl font-black italic text-nba-red">${totalRevenue.toLocaleString()}</p>
-                </div>
+        <AdminLayout title="Dashboard">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {statCards.map((card) => (
+                    <div key={card.label} className="bg-card-bg border border-white/5 rounded-xl p-5 hover:border-white/10 transition-all">
+                        <p className="text-xs text-white/50 uppercase tracking-wider mb-1">{card.label}</p>
+                        <p className={`text-3xl font-black italic ${card.color}`}>{card.value}</p>
+                    </div>
+                ))}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
                 <div className="bg-card-bg border border-white/5 rounded-xl p-5">
                     <p className="text-xs text-white/50 uppercase tracking-wider mb-1">Tickets Sold</p>
-                    <p className="text-3xl font-black italic">{totalTiket}</p>
+                    <p className="text-2xl font-black italic">{totalTiket}</p>
                 </div>
-                <div className="bg-card-bg border border-white/5 rounded-xl p-5">
-                    <p className="text-xs text-white/50 uppercase tracking-wider mb-1">Active Bookings</p>
-                    <p className="text-3xl font-black italic text-green-400">{activeMatches}</p>
+                <div className="bg-card-bg border border-white/5 rounded-xl p-5 border-yellow-500/20">
+                    <p className="text-xs text-white/50 uppercase tracking-wider mb-1">Pending</p>
+                    <p className="text-2xl font-black italic text-yellow-400">{pendingBookings}</p>
                 </div>
-                <div className="bg-card-bg border border-white/5 rounded-xl p-5">
-                    <p className="text-xs text-white/50 uppercase tracking-wider mb-1">Total Bookings</p>
-                    <p className="text-3xl font-black italic">{total}</p>
+                <div className="bg-card-bg border border-white/5 rounded-xl p-5 border-green-500/20">
+                    <p className="text-xs text-white/50 uppercase tracking-wider mb-1">Approved</p>
+                    <p className="text-2xl font-black italic text-green-400">{successBookings}</p>
                 </div>
             </div>
 
-            <div className="bg-card-bg border border-white/5 rounded-xl overflow-hidden">
-                <div className="p-4 border-b border-white/5 flex items-center justify-between">
-                    <form onSubmit={handleSearch} className="flex gap-2">
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            placeholder="Search bookings..."
-                            className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-nba-red w-64"
-                        />
-                        <Button type="submit" size="sm">Search</Button>
-                    </form>
-                    <span className="text-xs text-white/30">{bookings.length} bookings</span>
-                </div>
-
-                {bookings.length > 0 ? (
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b border-white/5 text-white/50 text-xs uppercase tracking-wider">
-                                <th className="text-left px-6 py-4 font-medium">Customer</th>
-                                <th className="text-left px-6 py-4 font-medium">Match</th>
-                                <th className="text-left px-6 py-4 font-medium">Tickets</th>
-                                <th className="text-left px-6 py-4 font-medium">Payment</th>
-                                <th className="text-left px-6 py-4 font-medium">Status</th>
-                                <th className="text-right px-6 py-4 font-medium">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {bookings.map((booking) => (
-                                <tr key={booking.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                                    <td className="px-6 py-4 font-semibold">{booking.nama}</td>
-                                    <td className="px-6 py-4 text-white/70">
-                                        {booking.game?.tim_home} vs {booking.game?.tim_away}
-                                    </td>
-                                    <td className="px-6 py-4">{booking.jumlah}</td>
-                                    <td className="px-6 py-4">{booking.pembayaran}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
-                                            booking.status === 'success' ? 'bg-green-500/20 text-green-400' :
-                                            booking.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                                            'bg-red-500/20 text-red-400'
-                                        }`}>
-                                            {booking.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            {booking.status === 'pending' && (
-                                                <button onClick={() => handleApprove(booking.id)} className="px-3 py-1.5 text-xs bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors">
-                                                    Approve
-                                                </button>
-                                            )}
-                                            <a href={`/admin/edit/${booking.id}`} className="px-3 py-1.5 text-xs border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
-                                                Edit
-                                            </a>
-                                            <button onClick={() => handleDelete(booking.id)} className="px-3 py-1.5 text-xs border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/10 transition-colors">
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    <div className="text-center py-16">
-                        <p className="text-white/50">No bookings found.</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-card-bg border border-white/5 rounded-xl overflow-hidden">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+                        <h3 className="font-bold">Recent Bookings</h3>
+                        <a href="/admin/bookings" className="text-xs text-nba-red hover:underline">View All</a>
                     </div>
-                )}
+                    {recentBookings.length > 0 ? (
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-white/5 text-white/50 text-xs uppercase tracking-wider">
+                                    <th className="text-left px-6 py-3 font-medium">Customer</th>
+                                    <th className="text-left px-6 py-3 font-medium">Match</th>
+                                    <th className="text-left px-6 py-3 font-medium">Tickets</th>
+                                    <th className="text-left px-6 py-3 font-medium">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {recentBookings.map((b) => (
+                                    <tr key={b.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                        <td className="px-6 py-3 font-semibold">{b.nama}</td>
+                                        <td className="px-6 py-3 text-white/70">{b.game?.tim_home} vs {b.game?.tim_away}</td>
+                                        <td className="px-6 py-3">{b.jumlah}</td>
+                                        <td className="px-6 py-3">
+                                            <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                                                b.status === 'success' ? 'bg-green-500/20 text-green-400' :
+                                                b.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                'bg-red-500/20 text-red-400'
+                                            }`}>{b.status}</span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <div className="p-6 text-center text-sm text-white/30">No bookings yet.</div>
+                    )}
+                </div>
+
+                <div className="bg-card-bg border border-white/5 rounded-xl p-6">
+                    <h3 className="font-bold mb-4">Booking Status</h3>
+                    <div className="space-y-4">
+                        <div>
+                            <div className="flex justify-between text-sm mb-1">
+                                <span className="text-white/70">Approved</span>
+                                <span className="text-green-400">{successBookings}</span>
+                            </div>
+                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${total > 0 ? (successBookings / total) * 100 : 0}%` }} />
+                            </div>
+                        </div>
+                        <div>
+                            <div className="flex justify-between text-sm mb-1">
+                                <span className="text-white/70">Pending</span>
+                                <span className="text-yellow-400">{pendingBookings}</span>
+                            </div>
+                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full bg-yellow-500 rounded-full transition-all" style={{ width: `${total > 0 ? (pendingBookings / total) * 100 : 0}%` }} />
+                            </div>
+                        </div>
+                        <div>
+                            <div className="flex justify-between text-sm mb-1">
+                                <span className="text-white/70">Cancelled</span>
+                                <span className="text-red-400">{cancelledBookings}</span>
+                            </div>
+                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full bg-red-500 rounded-full transition-all" style={{ width: `${total > 0 ? (cancelledBookings / total) * 100 : 0}%` }} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 space-y-3">
+                        <a href="/admin/matches" className="block p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                            <p className="text-sm font-semibold">Manage Matches</p>
+                            <p className="text-xs text-white/50">{activeMatches} matches available</p>
+                        </a>
+                        <a href="/admin/bookings" className="block p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                            <p className="text-sm font-semibold">All Bookings</p>
+                            <p className="text-xs text-white/50">{total} total transactions</p>
+                        </a>
+                    </div>
+                </div>
             </div>
-        </DashboardLayout>
+        </AdminLayout>
     );
 }

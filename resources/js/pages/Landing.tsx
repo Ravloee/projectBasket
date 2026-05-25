@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MatchCard from '@/components/MatchCard';
+import TeamLogo from '@/components/TeamLogo';
 import type { Game } from '@/types';
 
 interface Props {
@@ -79,9 +80,7 @@ export default function Landing({ games }: Props) {
                     <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                         {['Lakers', 'Warriors', 'Celtics', 'Bulls', 'Bucks', 'Nets'].map((team) => (
                             <div key={team} className="bg-white/5 border border-white/5 rounded-xl p-6 text-center hover:bg-white/10 transition-all group">
-                                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center text-2xl font-bold group-hover:bg-nba-red/20 transition-all">
-                                    {team.charAt(0)}
-                                </div>
+                                <TeamLogo team={team} size={64} className="mx-auto mb-3" />
                                 <p className="text-sm font-semibold">{team}</p>
                             </div>
                         ))}

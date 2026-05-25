@@ -1,20 +1,17 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
 
 const adminLinks = [
-    { href: '/admin', label: 'Dashboard' },
-    { href: '/admin', label: 'Matches' },
-    { href: '/admin', label: 'Tickets' },
-    { href: '/admin', label: 'Users' },
-    { href: '/admin', label: 'Transactions' },
+    { href: '/admin/dashboard', label: 'Dashboard' },
+    { href: '/admin/matches', label: 'Manage Match' },
+    { href: '/admin/bookings', label: 'Booking Data' },
 ];
 
 const userLinks = [
     { href: '/dashboard', label: 'Dashboard' },
-    { href: '/riwayat', label: 'My Tickets' },
-    { href: '/matches', label: 'Favorites' },
-    { href: '/riwayat', label: 'History' },
+    { href: '/matches', label: 'Matches' },
+    { href: '/riwayat', label: 'My Booking' },
 ];
 
 interface SidebarProps {
@@ -54,7 +51,7 @@ export default function Sidebar({ role }: SidebarProps) {
 
             <nav className="flex-1 px-3 space-y-1">
                 {links.map((link) => {
-                    const active = path === link.href;
+                    const active = path.startsWith(link.href);
                     return (
                         <Link
                             key={link.label}
@@ -72,18 +69,21 @@ export default function Sidebar({ role }: SidebarProps) {
                 })}
             </nav>
 
-            <div className="p-6">
+            <div className="p-6 space-y-4">
                 <div className="p-4 bg-gradient-to-br from-nba-red/20 to-nba-blue/20 rounded-lg border border-white/5">
                     <p className="text-xs font-semibold mb-1">NBA League Pass</p>
                     <p className="text-xs text-white/50 mb-3">UPGRADE NOW</p>
                     <button className="w-full py-1.5 bg-nba-red rounded text-xs font-semibold hover:bg-red-700 transition-colors">Get Access</button>
                 </div>
-                <Link href="/" className="flex items-center gap-2 mt-4 text-sm text-white/50 hover:text-white transition-colors">
+                <button
+                    onClick={() => router.post('/logout')}
+                    className="flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors w-full text-left"
+                >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
-                    Exit Dashboard
-                </Link>
+                    Logout
+                </button>
             </div>
         </aside>
     );

@@ -15,7 +15,8 @@ class Booking extends Model
         'pembayaran',
         'user_id',
         'status',
-        'game_id',        // 🔥 Penting
+        'game_id',
+        'kursi',
     ];
 
     public function user()
